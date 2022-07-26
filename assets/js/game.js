@@ -1,13 +1,19 @@
-/**
- * 2C = Two of Clubs
- * 2D = Two of Diamonds
- * 2H = Two of Hearts
- * 2S = Two of Spades
- */
-
 let deck       = [];
 const types    = ['C', 'D', 'H', 'S'];
 const specials = ['A', 'J', 'Q', 'K'];
+
+let playerPoints = 0,
+    computerPoints = 0;
+
+// HTML references
+const drawBtn = document.querySelector('#drawBtn');
+const stopBtn = document.querySelector('#stopBtn');
+const newBtn = document.querySelector('#newBtn');
+
+const playerCardsDiv = document.querySelector('#player-cards');
+const computerCardsDiv = document.querySelector('#computer-cards');
+
+const pointsHTML = document.querySelectorAll('small');
 
 // This function creates a new deck
 const createDeck = () => {
@@ -25,7 +31,6 @@ const createDeck = () => {
         }
     }
 
-    // console.log(deck);
     deck = _.shuffle(deck);
     console.log(deck);
     return deck;
@@ -41,8 +46,6 @@ const drawCard = () => {
     }
     const carta = deck.pop();
 
-    console.log(deck);
-    console.log(carta); // carta must be from the deck
     return carta;
 }
 
@@ -54,5 +57,87 @@ const cardValue = ( carta ) => {
             : value * 1;
 }
 
-const value = cardValue( drawCard() );
-console.log({value})
+
+// Computers turn
+const computerTurn = (minimumPoints) => {
+
+    do {
+        const carta = drawCard();
+        
+        computerPoints = computerPoints + cardValue( carta );
+        pointsHTML[1].innerText = computerPoints;
+
+        const imgCard = document.createElement('img');
+        imgCard.src = `assets/cards/${ carta }.png`;
+        imgCard.classList.add('carta');
+        computerCardsDiv.append(imgCard)
+
+        if (minimumPoints > 21) {
+            break;
+        }
+
+    } while ( (computerPoints < minimumPoints) && (minimumPoints <= 21) );
+
+    setTimeout(() => {
+        if (computerPoints === minimumPoints){
+            alert('Draw');
+        } else if (minimumPoints > 21) {
+            alert('Computer won');
+        } else if (computerPoints > 21){
+            alert('You won');
+        }else{
+            alert('Computer won')
+        }
+    }, 100);
+}
+
+
+// Events
+drawBtn.addEventListener('click', () => {
+
+    const carta = drawCard();
+    
+    playerPoints = playerPoints + cardValue( carta );
+    pointsHTML[0].innerText = playerPoints;
+
+    const imgCard = document.createElement('img');
+    imgCard.src = `assets/cards/${ carta }.png`;
+    imgCard.classList.add('carta');
+    playerCardsDiv.append(imgCard)
+
+    if ( playerPoints > 21 ) {
+        console.warn('You lose');
+        drawBtn.disabled = true;
+        stopBtn.disabled = true;
+        computerTurn(playerPoints);
+
+    } else if ( playerPoints === 21 ) {
+        console.warn('21, cool!');
+        drawBtn.disabled = true;
+        stopBtn.disabled = true;
+        computerTurn(playerPoints);
+    }
+});
+
+stopBtn.addEventListener('click', () => {
+    drawBtn.disabled = true;
+    stopBtn.disabled = true;
+    computerTurn(playerPoints);
+});
+
+newBtn.addEventListener('click', () => {
+    deck = [];
+    deck = createDeck();
+    
+    playerPoints = 0;
+    computerPoints = 0;
+    
+    pointsHTML[0].innerText = 0;
+    pointsHTML[1].innerText = 0;
+    
+    computerCardsDiv.innerHTML = '';
+    playerCardsDiv.innerHTML = '';
+
+    drawBtn.disabled = false;
+    stopBtn.disabled = false;
+})
